@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@bulatdashiev/svelte-slider": "^1.0.3"
+  }
+}
