@@ -1,27 +1,31 @@
-import odrive
-from odrive.utils import start_liveplotter
-
-odrv0 = odrive.find_any()
-
-import threading
-import matplotlib.pyplot as plt
 import numpy as np
+from live_plotter import LivePlotter, FastLivePlotter
 
-active_data = []
+live_plotter = FastLivePlotter(
+    xlabels=["x"],
+    ylabels=["y"],
+    ylims=[(-2, 2)],
+    legends=[["sin", "cos"]],
+)
+live_plotter2 = FastLivePlotter(
+    xlabels=["x"],
+    ylabels=["y"],
+    ylims=[(-2, 2)],
+    legends=["cos"],
+)
 
-def fetch_data():
-    global active_data
-    while True:
-        set_pos = odrv0.axis1.encoder.pos_estimate
-        active_data.append(set_pos)
+new_x_data = []
+i = 0
+while True:
+    new_x_data.append(i)
+    y_data = np.stack([np.sin(new_x_data), np.cos(new_x_data)], axis=1)
+    y_data2 = np.stack([np.cos(new_x_data), np.cos(new_x_data)], axis=1)
 
-fetch_data_T = threading.Thread(target=fetch_data)
-fetch_data_T.daemon = True
-fetch_data_T.start()
+    live_plotter.plot(
+        y_data_list=[y_data],
+    )
 
-# plt.figure()
-# plt.plot(np.arange(len(active_data)), active_data)
-# plt.show()
-# def update_data(i):
-print(active_data)
-print("Done")
+    live_plotter2.plot(
+        y_data_list=[y_data2]
+    )
+    i += 1

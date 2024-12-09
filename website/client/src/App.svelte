@@ -113,22 +113,22 @@
 			body: JSON.stringify(toyData)
 		});
 	}
+	
+	const postCANSetupSignal = () => {
+		let toyData = {
+			
+		}
+	}
 
 </script>
 
 <main>
-	<!--
-	<h1>Hello {text_now}!</h1>
-	<button on:click={press}>Get a press!</button>
-	<br>-->
-
-	<!--
-	<p>Set Speed</p>
-	<input bind:value={speed} placeholder="enter speed(0-1)"/>
-	<button on:click={postSpeed} disabled={notValidSpeed(speed)}>Send {speed}</button>
-	-->
 	<button class="stop" on:click={postIdleSignal}>STOP</button>
 	<br>
+	
+	<p>CAN Toggle</p>
+	<input bind:value={pos_gain} placeholder="enter pos_gain(0-1)"/>
+	<button id="toggleButton" on:click={postPosGainSignal}>Send pos_gain:{pos_gain}</button>
 
 	<p>Set Pos Gain</p>
 	<input bind:value={pos_gain} placeholder="enter pos_gain(0-1)"/>

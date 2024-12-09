@@ -64,7 +64,7 @@ def q1q2_from_xy(x, y):
     xD_mag = math.sqrt(x*x + y*y)
     c2 = (xD_mag * xD_mag - L1 * L1 - L2 * L2) / (2 * L1 * L2)
     if abs(c2) > 1:
-        return None
+        return 0, 0, 0, 0
     if c2 == 1:
         return math.atan2(y, x), 0, math.atan2(y, x), 0
     q2_1 = 1 * math.acos( c2 )
@@ -168,88 +168,6 @@ def tuning_vel(vel_gain_value, vel_integrator_gain_value):
     send_CAN(Joint.FL_lower.value, Tunas.VEL_GAIN.value, [vel_gain_value, vel_integrator_gain_value], data_format="<ff")
     send_CAN(Joint.FL_hip.value, Tunas.VEL_GAIN.value, [vel_gain_value, vel_integrator_gain_value], data_format="<ff")
 
-def haruto():
-    
-    tuning_pos(33)
-    tuning_vel(0.009, 0.045)
-
-    """
-    send_CAN(Joint.FL_upper.value, Commands.CONTROL_MODE.value, [odrive.enums.ControlMode.POSITION_CONTROL, odrive.enums.InputMode.PASSTHROUGH], data_format="<ii")
-    send_CAN(Joint.FL_lower.value, Commands.CONTROL_MODE.value, [odrive.enums.ControlMode.POSITION_CONTROL, odrive.enums.InputMode.PASSTHROUGH], data_format="<ii")
-
-    send_CAN(Joint.BL_upper.value, Commands.CONTROL_MODE.value, [odrive.enums.ControlMode.POSITION_CONTROL, odrive.enums.InputMode.PASSTHROUGH], data_format="<ii")
-    send_CAN(Joint.BL_lower.value, Commands.CONTROL_MODE.value, [odrive.enums.ControlMode.POSITION_CONTROL, odrive.enums.InputMode.PASSTHROUGH], data_format="<ii")
-
-    send_CAN(Joint.FR_upper.value, Commands.CONTROL_MODE.value, [odrive.enums.ControlMode.POSITION_CONTROL, odrive.enums.InputMode.PASSTHROUGH], data_format="<ii")
-    send_CAN(Joint.FR_lower.value, Commands.CONTROL_MODE.value, [odrive.enums.ControlMode.POSITION_CONTROL, odrive.enums.InputMode.PASSTHROUGH], data_format="<ii")
-
-    send_CAN(Joint.BR_upper.value, Commands.CONTROL_MODE.value, [odrive.enums.ControlMode.POSITION_CONTROL, odrive.enums.InputMode.PASSTHROUGH], data_format="<ii")
-    send_CAN(Joint.BR_lower.value, Commands.CONTROL_MODE.value, [odrive.enums.ControlMode.POSITION_CONTROL, odrive.enums.InputMode.PASSTHROUGH], data_format="<ii")
-    """
-    T = 0
-    b = L1 + L2 - 50
-    a = -80
-    
-    max_q1 = 0
-    min_q1 = 0
-    max_q2 = 0
-    min_q2 = 0
-
-    while True:
-        while T < 1:
-            q1_1, q2_1, q1_2, q2_2 = 0, 0, 0, 0
-            x = -a * T + a + b
-            y = 0
-            q1_1, q2_1, q1_2, q2_2 = q1q2_from_xy(x, y)
-
-            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [-1 * q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [-1 * q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            max_q1 = max(math.degrees(q1_2), max_q1)
-            min_q1 = min(math.degrees(q1_2), min_q1)
-            max_q2 = max(math.degrees(q2_2), max_q2)
-            min_q2 = min(math.degrees(q2_2), min_q2)
-            
-            print(f"Up: {x}, {y}")
-            T += 3e-2
-            time.sleep(0.03)
-        while T >= 0:
-            q1_1, q2_1, q1_2, q2_2 = 0, 0, 0, 0
-            x = -a * T + a + b
-            y = 0
-            q1_1, q2_1, q1_2, q2_2 = q1q2_from_xy(x, y)
-
-            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [-1 * q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [-1 * q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            max_q1 = max(math.degrees(q1_2), max_q1)
-            min_q1 = min(math.degrees(q1_2), min_q1)
-            max_q2 = max(math.degrees(q2_2), max_q2)
-            min_q2 = min(math.degrees(q2_2), min_q2)
-
-            print(f"Down: {x}, {y}")
-            T -= 3e-2
-            time.sleep(0.03)
-            # print("Path 2", T)
-
 def one_at_a_time_updown():
     
     tuning_pos(33)
@@ -329,4 +247,174 @@ def one_at_a_time_updown():
                 # print("Path 2", T)
             time.sleep(1)
 
-one_at_a_time_updown()
+def f_x(a, b, x):
+    return b * np.cos(a * x)
+
+def cosine_wave_single_steps():
+    
+    tuning_pos(33)
+    tuning_vel(0.009, 0.045)
+
+    T = 0
+    offset = L1 + L2 - 80
+    a = 0.03*np.pi
+    b = 100
+
+    while True:
+        T = 0
+        while 0 <= T < 0.98:
+            q1_1, q2_1, q1_2, q2_2 = 0, 0, 0, 0
+            y_FL = (-np.pi / a) * (T - 0) + np.pi / (2 * a)
+            x_FL = -1 * f_x(a, b, -np.pi*(T - 0)/a + np.pi/(2*a)) + offset
+
+            y_FR = np.pi*(T-2)/(3*a) + np.pi/(2*a)
+            x_FR = offset
+
+            y_BL = -1 * (np.pi*(T-3)/(3*a) + np.pi/(2*a))
+            x_BL = offset
+
+            y_BR = -1 * (np.pi*(T-1)/(3*a) + np.pi/(2*a))
+            x_BR = offset
+
+            _, _, FL_q1_2, FL_q2_2 = q1q2_from_xy(x_FL, y_FL)
+            _, _, FR_q1_2, FR_q2_2 = q1q2_from_xy(x_FR, y_FR)
+            _, _, BL_q1_2, BL_q2_2 = q1q2_from_xy(x_BL, y_BL)
+            _, _, BR_q1_2, BR_q2_2 = q1q2_from_xy(x_BR, y_BR)
+
+            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * FL_q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * FL_q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [BL_q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [BL_q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [FR_q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [FR_q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [-1 * BR_q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [-1 * BR_q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            T += 3e-2
+            time.sleep(0.0008)
+        while 0.98 <= T < 1:
+            T += 3e-2
+            time.sleep(0.5)
+        while 1 <= T < 1.98:
+            q1_1, q2_1, q1_2, q2_2 = 0, 0, 0, 0
+            y_FL = np.pi*(T-4)/(3*a) + np.pi/(2*a)
+            x_FL = offset
+
+            y_FR = np.pi*(T-2)/(3*a) + np.pi/(2*a)
+            x_FR = offset
+
+            y_BL = -1 * (np.pi*(T-3)/(3*a) + np.pi/(2*a))
+            x_BL = offset
+
+            y_BR = -1 * ((-np.pi / a) * (T - 1) + np.pi / (2 * a))
+            x_BR = -1 * f_x(a, b, -np.pi*(T - 1)/a + np.pi/(2*a)) + offset
+
+            _, _, FL_q1_2, FL_q2_2 = q1q2_from_xy(x_FL, y_FL)
+            _, _, FR_q1_2, FR_q2_2 = q1q2_from_xy(x_FR, y_FR)
+            _, _, BL_q1_2, BL_q2_2 = q1q2_from_xy(x_BL, y_BL)
+            _, _, BR_q1_2, BR_q2_2 = q1q2_from_xy(x_BR, y_BR)
+
+            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * FL_q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * FL_q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [BL_q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [BL_q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [FR_q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [FR_q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [-1 * BR_q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [-1 * BR_q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            T += 3e-2
+            time.sleep(0.0008)
+        while 1.98 <= T < 2:
+            T += 3e-2
+            time.sleep(0.5)
+        while 2 <= T < 2.98:
+            q1_1, q2_1, q1_2, q2_2 = 0, 0, 0, 0
+            y_FL = np.pi*(T-4)/(3*a) + np.pi/(2*a)
+            x_FL = offset
+
+            y_FR = (-np.pi / a) * (T - 2) + np.pi / (2 * a)
+            x_FR = -1 * f_x(a, b, -np.pi*(T - 2)/a + np.pi/(2*a)) + offset
+
+            y_BL = -1 * (np.pi*(T-3)/(3*a) + np.pi/(2*a))
+            x_BL = offset
+
+            y_BR = -1 * (np.pi*(T-5)/(3*a) + np.pi/(2*a))
+            x_BR = offset
+
+            _, _, FL_q1_2, FL_q2_2 = q1q2_from_xy(x_FL, y_FL)
+            _, _, FR_q1_2, FR_q2_2 = q1q2_from_xy(x_FR, y_FR)
+            _, _, BL_q1_2, BL_q2_2 = q1q2_from_xy(x_BL, y_BL)
+            _, _, BR_q1_2, BR_q2_2 = q1q2_from_xy(x_BR, y_BR)
+
+            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * FL_q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * FL_q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [BL_q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [BL_q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [FR_q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [FR_q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [-1 * BR_q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [-1 * BR_q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            T += 3e-2
+            time.sleep(0.0008)
+        while 2.98 <= T < 3:
+            T += 3e-2
+            time.sleep(0.5)
+        while 3 <= T < 3.98:
+            q1_1, q2_1, q1_2, q2_2 = 0, 0, 0, 0
+            y_FL = np.pi*(T-4)/(3*a) + np.pi/(2*a)
+            x_FL = offset
+
+            y_FR = np.pi*(T-6)/(3*a) + np.pi/(2*a)
+            x_FR = offset
+
+            y_BL = -1 * ((-np.pi / a) * (T - 3) + np.pi / (2 * a))
+            x_BL = -1 * f_x(a, b, -np.pi*(T - 3)/a + np.pi/(2*a)) + offset
+
+            y_BR = -1 * (np.pi*(T-5)/(3*a) + np.pi/(2*a))
+            x_BR = offset
+
+            _, _, FL_q1_2, FL_q2_2 = q1q2_from_xy(x_FL, y_FL)
+            _, _, FR_q1_2, FR_q2_2 = q1q2_from_xy(x_FR, y_FR)
+            _, _, BL_q1_2, BL_q2_2 = q1q2_from_xy(x_BL, y_BL)
+            _, _, BR_q1_2, BR_q2_2 = q1q2_from_xy(x_BR, y_BR)
+
+            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * FL_q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * FL_q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [BL_q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [BL_q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [FR_q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [FR_q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [-1 * BR_q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [-1 * BR_q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            T += 3e-2
+            time.sleep(0.0008)
+        while 3.98 <= T < 4:
+            T += 3e-2
+            time.sleep(0.5)
+        T -= 4
+
+def single_leg_TEST():
+    
+    tuning_pos(33)
+    tuning_vel(0.009, 0.045)
+
+    send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [0, 4, 0], data_format="<fhh")
+    time.sleep()
+
+# one_at_a_time_updown()
+# cosine_wave_single_steps()
