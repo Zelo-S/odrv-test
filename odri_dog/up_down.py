@@ -245,7 +245,7 @@ def one_at_a_time_updown():
                 T -= 3e-2
                 time.sleep(0.0008)
                 # print("Path 2", T)
-            time.sleep(1)
+            time.sleep(2.1)
 
 def f_x(a, b, x):
     return b * np.cos(a * x)
@@ -416,5 +416,5 @@ def single_leg_TEST():
     send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [0, 4, 0], data_format="<fhh")
     time.sleep()
 
-# one_at_a_time_updown()
+one_at_a_time_updown()
 # cosine_wave_single_steps()
