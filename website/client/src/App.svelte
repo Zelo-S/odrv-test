@@ -153,7 +153,7 @@
 	<button on:click={postCLCSignal}>CLC</button>
 	<br>
 	<button on:click={postCalibrationSignal}>Calibrate</button>
-	<button on:click={postZeroingSignal}>Set Linear Count 0</button>
+	<button on:click={postZeroingSignal}>Set Linear Count 0 + Tune PID</button>
 	<br>
 	<button on:click={postHomeSignal}>Home to 0</button>
 	<br>

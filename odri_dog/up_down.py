@@ -8,7 +8,7 @@ import time
 import numpy as np
 from enum import Enum
 import math
-
+import fetchtraj
 
 # can_front = can.interface.Bus(channel='can0', bustype='socketcan')
 
@@ -167,85 +167,6 @@ def tuning_vel(vel_gain_value, vel_integrator_gain_value):
     send_CAN(Joint.FL_upper.value, Tunas.VEL_GAIN.value, [vel_gain_value, vel_integrator_gain_value], data_format="<ff")
     send_CAN(Joint.FL_lower.value, Tunas.VEL_GAIN.value, [vel_gain_value, vel_integrator_gain_value], data_format="<ff")
     send_CAN(Joint.FL_hip.value, Tunas.VEL_GAIN.value, [vel_gain_value, vel_integrator_gain_value], data_format="<ff")
-
-def one_at_a_time_updown():
-    
-    tuning_pos(33)
-    tuning_vel(0.009, 0.045)
-
-    T = 0
-    b = L1 + L2 - 50
-    a = -100
-    
-    max_q1 = 0
-    min_q1 = 0
-    max_q2 = 0
-    min_q2 = 0
-
-    while True:
-        for i in range(4):
-            while T < 1:
-                q1_1, q2_1, q1_2, q2_2 = 0, 0, 0, 0
-                x = a * T + b
-                y = 0
-                q1_1, q2_1, q1_2, q2_2 = q1q2_from_xy(x, y)
-
-                if i == 0:
-                    send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-                    send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-                elif i == 1:
-                    send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-                    send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-                elif i == 2:
-                    send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-                    send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-                elif i == 3:
-                    send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [-1 * q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-                    send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [-1 * q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-                max_q1 = max(math.degrees(q1_2), max_q1)
-                min_q1 = min(math.degrees(q1_2), min_q1)
-                max_q2 = max(math.degrees(q2_2), max_q2)
-                min_q2 = min(math.degrees(q2_2), min_q2)
-                
-                print(f"Up: {x}, {y}")
-                T += 3e-2
-                time.sleep(0.0008)
-            while T >= 0:
-                q1_1, q2_1, q1_2, q2_2 = 0, 0, 0, 0
-                x = a * T + b
-                y = 0
-                q1_1, q2_1, q1_2, q2_2 = q1q2_from_xy(x, y)
-                
-                if i == 0:
-                    send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-                    send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-                elif i == 1:
-                    send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-                    send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-                elif i == 2:
-                    send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [q1_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-                    send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [q2_2 * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-                elif i == 3:
-                    send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [-1 * q1_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-                    send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [-1 * q2_2 * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-                max_q1 = max(math.degrees(q1_2), max_q1)
-                min_q1 = min(math.degrees(q1_2), min_q1)
-                max_q2 = max(math.degrees(q2_2), max_q2)
-                min_q2 = min(math.degrees(q2_2), min_q2)
-
-                print(f"Down: {x}, {y}")
-                T -= 3e-2
-                time.sleep(0.0008)
-                # print("Path 2", T)
-            time.sleep(2.1)
 
 def f_x(a, b, x):
     return b * np.cos(a * x)
@@ -408,13 +329,88 @@ def cosine_wave_single_steps():
             time.sleep(0.5)
         T -= 4
 
-def single_leg_TEST():
-    
-    tuning_pos(33)
-    tuning_vel(0.009, 0.045)
+def one_leg_up_down():
+    """
+        One leg per time, up down
+        Orientation: +Z = near hip, -Z = near end-effector, trajectory generation described by the following bot:
 
-    send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [0, 4, 0], data_format="<fhh")
-    time.sleep()
+        # Requires roboticstoolbox-python, ideally on python==3.10
+        ERobot: , 2 joints (RR)
+        ┌──────┬────────┬───────┬────────┬─────────────────────┐
+        │ link │  link  │ joint │ parent │ ETS: parent to link │
+        ├──────┼────────┼───────┼────────┼─────────────────────┤
+        │    0 │ link0  │     0 │ BASE   │ Ry(q0)              │
+        │    1 │ link1  │     1 │ link0  │ tz(-0.165) ⊕ Ry(q1) │
+        │    2 │ @link2 │       │ link1  │ tz(-0.165)          │
+        └──────┴────────┴───────┴────────┴─────────────────────┘
+        
+    """
+    traj = fetchtraj.MyTraj()
+    trajarr = traj.fetch_traj_delta_150()
+    while True:
+        for i in range(4):
+            for q in trajarr:
+                upper_q = q[0] # is a negative value so -y,
+                lower_q = q[1] # is a positive value so +y, 
 
-one_at_a_time_updown()
-# cosine_wave_single_steps()
+                if i == 0:
+                    send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+                    send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+                elif i == 1:
+                    send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+                    send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+                elif i == 2:
+                    send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+                    send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+                elif i == 3:
+                    send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+                    send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+                time.sleep(0.00008)
+            time.sleep(2)
+
+def two_leg_up_down(): # NOTE: Very stable
+    """
+        Two leg per time, diagonally aligned, up down
+        Orientation: +Z = near hip, -Z = near end-effector, trajectory generation described by the following bot:
+
+        # Requires roboticstoolbox-python, ideally on python==3.10
+        ERobot: , 2 joints (RR)
+        ┌──────┬────────┬───────┬────────┬─────────────────────┐
+        │ link │  link  │ joint │ parent │ ETS: parent to link │
+        ├──────┼────────┼───────┼────────┼─────────────────────┤
+        │    0 │ link0  │     0 │ BASE   │ Ry(q0)              │
+        │    1 │ link1  │     1 │ link0  │ tz(-0.165) ⊕ Ry(q1) │
+        │    2 │ @link2 │       │ link1  │ tz(-0.165)          │
+        └──────┴────────┴───────┴────────┴─────────────────────┘
+        
+    """
+    traj = fetchtraj.MyTraj()
+    trajarr = traj.fetch_traj_delta_50()
+    while True:
+        for i in range(2):
+            for q in trajarr:
+                upper_q = q[0] # is a negative value so -y,
+                lower_q = q[1] # is a positive value so +y, 
+
+                if i == 0:
+                    send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+                    send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+                    send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+                    send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+                elif i == 1:
+                    send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+                    send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+                    send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+                    send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+                time.sleep(0.0003)
+            time.sleep(0.5)
+
+one_leg_up_down()

@@ -190,6 +190,9 @@ def set_lc_zero(): # set linear-counts to 0
     while not (bus0.recv(timeout=0) is None): pass
     while not (bus1.recv(timeout=0) is None): pass
 
+    tuning_pos(33)
+    tuning_vel(0.009, 0.045)
+
     send_CAN(Joint.FL_hip.value,   Commands.LINEAR_COUNT.value, [0], data_format="<I")
     send_CAN(Joint.FL_upper.value, Commands.LINEAR_COUNT.value, [0], data_format="<I")
     send_CAN(Joint.FL_lower.value, Commands.LINEAR_COUNT.value, [0], data_format="<I")
