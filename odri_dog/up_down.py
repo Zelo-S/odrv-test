@@ -414,74 +414,39 @@ def two_leg_up_down(): # NOTE: Very stable
             time.sleep(0.5)
 
 
-def inplace_shift():
+def slow_walk():
     """
     Follows a trajectory described by: ... 
-    
     """
-    traj = fetchtraj.MyTraj()
-    front_trajarr = traj.inplaceshift_FRONT()
-    back_trajarr = traj.inplaceshift_BACK()
+
+    traj_generator = fetchtraj.TrajFetch(
+        all_filepath="traj_gen/trajectories/slow_walk_all_legs.npy"
+    )
+    
+    all_arr = traj_generator.fetch_all()
+    
+    FR_gait = all_arr[0]
+    BL_gait = all_arr[1]
+    FL_gait = all_arr[2]
+    BR_gait = all_arr[3]
+
     while True:
-        for fq, bq in zip(front_trajarr, back_trajarr):
+        for FRq, BLq, FLq, BRq in zip(FR_gait, BL_gait, FL_gait, BR_gait):
 
-            upper_q = fq[0] # is a negative value so -y,
-            lower_q = fq[1] # is a positive value so +y, 
+            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [FRq[0] * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [FRq[1] * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
 
-            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * FLq[0] * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * FLq[1] * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
 
-            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [-1 * BLq[0] * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [-1 * BLq[1] * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [BRq[0] * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [BRq[1] * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
             
-            time.sleep(0.01)
-
-            upper_q = bq[0] # is a negative value so -y,
-            lower_q = bq[1] # is a positive value so +y, 
-
-            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-            
-            time.sleep(0.0001)
+            time.sleep(0.003)
 
         time.sleep(1)
 
-def cosine_step():
-    """
-    Follows a trajectory described by: ... 
-    
-    """
-    traj = fetchtraj.MyTraj()
-    front_trajarr = traj.fetch_cosine_move_FRONT()
-    back_trajarr = traj.fetch_cosine_move_BACK()
-    while True:
-        for fq, bq in zip(front_trajarr, back_trajarr):
-                
-            print(fq, bq)
-
-            upper_q = fq[0] # is a negative value so -y,
-            lower_q = fq[1] # is a positive value so +y, 
-
-            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            upper_q = bq[0] # is a negative value so -y,
-            lower_q = bq[1] # is a positive value so +y, 
-
-            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
-
-            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
-            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
-            
-            time.sleep(0.0001)
-        time.sleep(1)
-
-# cosine_step()
-inplace_shift()
+slow_walk()
