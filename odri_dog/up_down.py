@@ -413,4 +413,40 @@ def two_leg_up_down(): # NOTE: Very stable
                 time.sleep(0.0003)
             time.sleep(0.5)
 
-one_leg_up_down()
+def cosine_step():
+    """
+    Follows a trajectory described by: ... 
+    
+    """
+    traj = fetchtraj.MyTraj()
+    front_trajarr = traj.fetch_cosine_move_FRONT()
+    back_trajarr = traj.fetch_cosine_move_BACK()
+    while True:
+        """
+        for q in front_trajarr:
+            upper_q = q[0] # is a negative value so -y,
+            lower_q = q[1] # is a positive value so +y, 
+
+            send_CAN(Joint.FL_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FL_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.FR_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.FR_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+            
+            time.sleep(0.001)
+        """
+        for q in back_trajarr:
+            upper_q = q[0] # is a negative value so -y,
+            lower_q = q[1] # is a positive value so +y, 
+
+            send_CAN(Joint.BL_upper.value, Commands.INPUT_POS.value, [-1 * upper_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BL_lower.value, Commands.INPUT_POS.value, [-1 * lower_q * (9 / (2 * math.pi)), 4, 0], data_format="<fhh") # BR_lower axis should turn +1
+
+            send_CAN(Joint.BR_upper.value, Commands.INPUT_POS.value, [upper_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_upper axis should turn -1
+            send_CAN(Joint.BR_lower.value, Commands.INPUT_POS.value, [lower_q * (9 / (2 * math.pi)),      4, 0], data_format="<fhh") # BR_lower axis should turn +1
+            
+            time.sleep(0.001)
+        time.sleep(1)
+
+# one_leg_up_down()
+cosine_step()
