@@ -28,9 +28,13 @@ class Joint(Enum): #Axis ID
     BR_lower = 11
 
 pos_vals = []
+setpoint_vals = []
+timestamps = []
 
 def canbus_thread():
     global pos_vals
+    global timestamps
+    start_time = time.time()
     with can.interface.Bus("can1", interface="socketcan") as bus:
         while True:
             msg = bus.recv(timeout=1)
@@ -43,6 +47,8 @@ def canbus_thread():
             if msg.arbitration_id == (Joint.BR_upper.value << 5 | 0x09):
                 pos, vel = struct.unpack('ff', msg.data)
                 pos_vals.append(pos)
+                setpoint_vals.append(setpoint_vals)
+                timestamps.append(round(time.time() - start_time, 1))
 
 can_thr = threading.Thread(target=canbus_thread)
 can_thr.start()
@@ -71,25 +77,21 @@ class MainWindow(QtWidgets.QMainWindow):
             self.time,
             [],
             name="Pos",
-            pen=pen,
-            symbol="+",
-            symbolSize=5,
-            symbolBrush="b",
+            pen=pen
         )
 
         self.start_time = round(time.time(), 1)
+        self.window_length = 50
 
         # Add a timer to simulate new temperature measurements
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(50)
+        self.timer.setInterval(5)
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()
+        
 
     def update_plot(self):
-        self.time.append(round(time.time(), 1) - self.start_time)
-        self.time = self.time[-50:]
-        # self.plot_graph.setYRange(0, pos_vals)
-        self.line.setData(self.time, pos_vals[-50:])
+        self.line.setData(timestamps, pos_vals)
 
 app = QtWidgets.QApplication([])
 main = MainWindow()
