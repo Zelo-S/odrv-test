@@ -50,7 +50,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Add a timer to simulate new temperature measurements
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(200)
+        self.timer.setInterval(100)
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()
 
